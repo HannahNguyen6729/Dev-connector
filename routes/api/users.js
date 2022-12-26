@@ -22,6 +22,7 @@ router.post(
       "Please enter a password with at least 6 characters"
     ).isLength({ min: 6 }),
   ],
+
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -29,7 +30,7 @@ router.post(
         err: errors.array(),
       });
     }
-
+    //request, response
     const { name, email, password } = req.body;
     try {
       //see if user already exists
@@ -54,9 +55,9 @@ router.post(
       user.password = hashPassword;
       await user.save();
 
-      //return jsonwebtoken
+      //create jsonwebtoken, return jwt to authenticate and access protected routes
       const payload = {
-        newUser: {
+        currentUser: {
           id: user.id,
         },
       };
@@ -70,6 +71,7 @@ router.post(
         }
       );
       console.log(req.body);
+      //catch errors
     } catch (err) {
       console.error(err);
       return res.status(500).send("server error");
