@@ -215,9 +215,71 @@ router.delete("/experience/:exp_id", authMiddleware, async (req, res) => {
       .map((exp) => exp._id)
       .indexOf(req.params.exp_id);
     profile.experience.splice(removeIndex, 1);
-    // profile.experience.filter((exp) => exp._id !== req.params.exp_id);
     await profile.save();
     return res.status(200).json({ profile });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).send("server error");
+  }
+});
+module.exports = router;
+
+//@route PUT api/profile/education
+//@desc  add profile education
+//@access Private
+router.put(
+  "/education",
+  [
+    authMiddleware,
+    [
+      //validation
+      check("school", "school is required").not().isEmpty(),
+      check("degree", "degree is required").not().isEmpty(),
+      check("fieldOfStudy", "fieldOfStudy is required").not().isEmpty(),
+      check("from", "from is required").not().isEmpty(),
+    ],
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        err: errors.array(),
+      });
+    }
+    try {
+      const { school, degree, fieldOfStudy, from, to, current, description } =
+        req.body;
+      const newEdu = {
+        school,
+        degree,
+        fieldOfStudy,
+        from,
+        to,
+        current,
+        description,
+      };
+      let profile = await Profile.findOne({ user: req.user.id });
+      profile.education.unshift(newEdu);
+      await profile.save();
+      return res.status(200).json({ updatedProfile: profile });
+    } catch (err) {
+      console.error(err.message);
+      return res.status(500).send("server error");
+    }
+  }
+);
+//@route DELETE api/profile/experience/:exp_id
+//@desc  delete experience from profile
+//@access Private
+router.delete("/education/:edu_id", authMiddleware, async (req, res) => {
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+    const removeIndex = profile.education
+      .map((edu_id) => edu_id._id)
+      .indexOf(req.params.edu_id);
+    profile.education.splice(removeIndex, 1);
+    await profile.save();
+    return res.status(200).json({ message: "deleted successfully", profile });
   } catch (err) {
     console.error(err.message);
     return res.status(500).send("server error");
