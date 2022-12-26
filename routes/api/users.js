@@ -7,8 +7,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("config");
 
-//@route GET api/users
-//@desc  Test route
+//@route POST api/users
+//@desc  create user route
 //@access Public
 
 router.post(
