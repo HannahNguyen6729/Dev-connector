@@ -7,10 +7,9 @@ const authMiddleware = require("../../middleware/auth");
 const Profile = require("../../models/Profile");
 const Post = require("../../models/Post");
 
-//@route GET api/posts
+//@route POST api/posts
 //@desc  create a new post
 //@access Private
-
 router.post(
   "/",
   [
@@ -144,6 +143,78 @@ router.put("/unlike/:id", authMiddleware, async (req, res) => {
     post.likes.splice(removeIndex, 1);
     await post.save();
     return res.status(200).json(post.likes);
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).send("server error");
+  }
+});
+
+//@route POST api/posts/comment/:id
+//@desc  comment on a post
+//@access Private
+router.post(
+  "/comment/:id",
+  [
+    authMiddleware,
+    //validation
+    [check("text", "text is required").not().isEmpty()],
+  ],
+  async (req, res) => {
+    //validation
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        err: errors.array(),
+      });
+    }
+
+    try {
+      const user = await User.findById(req.user.id).select("-password");
+      const post = await Post.findById(req.params.id);
+      const newComment = {
+        user: req.user.id,
+        text: req.body.text,
+        name: user.name,
+        avatar: user.avatar,
+      };
+      post.comments.unshift(newComment);
+      post.save();
+      return res.status(200).json(post.comments);
+    } catch (err) {
+      console.error(err.message);
+      return res.status(500).send("server error");
+    }
+  }
+);
+
+//@route DELETE api/posts/comment/:id/:comment_id
+//@desc  delete a comment (by postId && commentId)
+//@access Private
+router.delete("/comment/:id/:comment_id", authMiddleware, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    //pull out comment
+    const comment = post.comments.find(
+      (comment) => comment.id === req.params.comment_id
+    );
+    //check if comment exists
+    if (!comment) {
+      return res.status(404).json({ msg: "Comment does not exist" });
+    }
+    //check user
+    if (comment.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: "user not authorized" });
+    }
+
+    //get remove index
+    const removeIndex = post.comments.map((comment) =>
+      comment.user.toString().indexOf(req.user.id)
+    );
+    post.comments.splice(removeIndex, 1);
+
+    await post.save();
+    return res.status(200).json(post.comments);
   } catch (err) {
     console.error(err.message);
     return res.status(500).send("server error");
