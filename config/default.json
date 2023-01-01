@@ -2,5 +2,6 @@
   "mongoURI": "mongodb+srv://HanhNguyen:thuongem7904@cluster0.kstdfqg.mongodb.net/?retryWrites=true&w=majority",
   "jwtSecret": "mysecrettoken6729",
   "githubClientId": "c011ab4d154bb7c4a6f4",
-  "githubSecret": "16746069d7e6c106415c3093869150ef2e6eefe0"
+  "githubSecret": "16746069d7e6c106415c3093869150ef2e6eefe0",
+  "githubToken": "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"
 }
